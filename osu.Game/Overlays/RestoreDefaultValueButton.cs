@@ -74,6 +74,7 @@ namespace osu.Game.Overlays
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
                 Size = new Vector2(size),
+                Margin = new MarginPadding { Top = size / 1.5f },
                 Masking = true,
                 Child = background = new Box
                 {
