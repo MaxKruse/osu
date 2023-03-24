@@ -56,6 +56,10 @@ namespace osu.Game.Skinning
 
         public readonly Bindable<Live<SkinInfo>> CurrentSkinInfo = new Bindable<Live<SkinInfo>>(ArgonSkin.CreateInfo().ToLiveUnmanaged());
 
+        public readonly Bindable<Skin> CurrentHitsoundSamplesSkin = new Bindable<Skin>();
+
+        public readonly Bindable<Live<SkinInfo>> CurrentHitsoundSamplesSkinInfo = new Bindable<Live<SkinInfo>>(DefaultLegacySkin.CreateInfo().ToLiveUnmanaged());
+
         private readonly SkinImporter skinImporter;
 
         private readonly IResourceStore<byte[]> userFiles;
@@ -112,11 +116,25 @@ namespace osu.Game.Skinning
                 CurrentSkin.Value = skin.NewValue.PerformRead(GetSkin);
             };
 
+            CurrentHitsoundSamplesSkinInfo.ValueChanged += skin =>
+            {
+                CurrentHitsoundSamplesSkin.Value = skin.NewValue.PerformRead(GetSkin);
+            };
+
             CurrentSkin.Value = argonSkin;
             CurrentSkin.ValueChanged += skin =>
             {
                 if (!skin.NewValue.SkinInfo.Equals(CurrentSkinInfo.Value))
                     throw new InvalidOperationException($"Setting {nameof(CurrentSkin)}'s value directly is not supported. Use {nameof(CurrentSkinInfo)} instead.");
+
+                SourceChanged?.Invoke();
+            };
+
+            CurrentHitsoundSamplesSkin.Value = DefaultClassicSkin;
+            CurrentHitsoundSamplesSkin.ValueChanged += skin =>
+            {
+                if (!skin.NewValue.SkinInfo.Equals(CurrentHitsoundSamplesSkinInfo.Value))
+                    throw new InvalidOperationException($"Setting {nameof(CurrentHitsoundSamplesSkin)}'s value directly is not supported. Use {nameof(CurrentHitsoundSamplesSkinInfo)} instead.");
 
                 SourceChanged?.Invoke();
             };
@@ -220,7 +238,7 @@ namespace osu.Game.Skinning
 
         public Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT) => lookupWithFallback(s => s.GetTexture(componentName, wrapModeS, wrapModeT));
 
-        public ISample GetSample(ISampleInfo sampleInfo) => lookupWithFallback(s => s.GetSample(sampleInfo));
+        public ISample GetSample(ISampleInfo sampleInfo) => lookupHitSamplesWithFallback(s => s.GetSample(sampleInfo));
 
         public IBindable<TValue> GetConfig<TLookup, TValue>(TLookup lookup) => lookupWithFallback(s => s.GetConfig<TLookup, TValue>(lookup));
 
@@ -253,10 +271,40 @@ namespace osu.Game.Skinning
             }
         }
 
+        public IEnumerable<ISkin> AllHitsoundSources
+        {
+            get
+            {
+                yield return CurrentHitsoundSamplesSkin.Value;
+
+                // Skin manager provides default fallbacks.
+                // This handles cases where a user skin doesn't have the required resources for complete display of
+                // certain elements.
+
+                if (CurrentHitsoundSamplesSkin.Value is LegacySkin && CurrentHitsoundSamplesSkin.Value != DefaultClassicSkin)
+                    yield return DefaultClassicSkin;
+
+                if (CurrentHitsoundSamplesSkin.Value != trianglesSkin)
+                    yield return trianglesSkin;
+            }
+        }
+
         private T lookupWithFallback<T>(Func<ISkin, T> lookupFunction)
             where T : class
         {
             foreach (var source in AllSources)
+            {
+                if (lookupFunction(source) is T skinSourced)
+                    return skinSourced;
+            }
+
+            return null;
+        }
+
+        private T lookupHitSamplesWithFallback<T>(Func<ISkin, T> lookupFunction)
+            where T : class
+        {
+            foreach (var source in AllHitsoundSources)
             {
                 if (lookupFunction(source) is T skinSourced)
                     return skinSourced;
@@ -319,11 +367,11 @@ namespace osu.Game.Skinning
             });
         }
 
-        public void SetSkinFromConfiguration(string guidString)
+        public void SetSkinsFromConfiguration(string guidStringGameplay, string guidStringHitsounds)
         {
             Live<SkinInfo> skinInfo = null;
 
-            if (Guid.TryParse(guidString, out var guid))
+            if (Guid.TryParse(guidStringGameplay, out var guid))
                 skinInfo = Query(s => s.ID == guid);
 
             if (skinInfo == null)
@@ -333,6 +381,19 @@ namespace osu.Game.Skinning
             }
 
             CurrentSkinInfo.Value = skinInfo ?? trianglesSkin.SkinInfo;
+
+            skinInfo = null;
+
+            if (Guid.TryParse(guidStringHitsounds, out var guidHitsound))
+                skinInfo = Query(s => s.ID == guidHitsound);
+
+            if (skinInfo == null)
+            {
+                if (guidHitsound == SkinInfo.CLASSIC_SKIN)
+                    skinInfo = DefaultClassicSkin.SkinInfo;
+            }
+
+            CurrentHitsoundSamplesSkinInfo.Value = skinInfo ?? DefaultClassicSkin.SkinInfo;
         }
     }
 }

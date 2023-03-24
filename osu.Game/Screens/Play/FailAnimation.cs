@@ -76,10 +76,10 @@ namespace osu.Game.Screens.Play
         }
 
         [BackgroundDependencyLoader]
-        private void load(AudioManager audio, ISkinSource skin, IBindable<WorkingBeatmap> beatmap)
+        private void load(AudioManager audio, SkinManager skinManager, IBindable<WorkingBeatmap> beatmap)
         {
             track = beatmap.Value.Track;
-            failSample = skin.GetSample(new SampleInfo(@"Gameplay/failsound"));
+            failSample = skinManager.GetSample(new SampleInfo(@"Gameplay/failsound"));
 
             AddRangeInternal(new Drawable[]
             {
