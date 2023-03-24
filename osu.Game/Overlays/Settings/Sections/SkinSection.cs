@@ -27,6 +27,7 @@ namespace osu.Game.Overlays.Settings.Sections
     public partial class SkinSection : SettingsSection
     {
         private SkinSettingsDropdown skinDropdown;
+        private SkinSettingsDropdown skinHitSamplesDropdown;
 
         public override LocalisableString Header => SkinSettingsStrings.SkinSectionHeader;
 
@@ -62,6 +63,12 @@ namespace osu.Game.Overlays.Settings.Sections
                     Current = skins.CurrentSkinInfo,
                     Keywords = new[] { @"skins" }
                 },
+                skinHitSamplesDropdown = new SkinSettingsDropdown
+                {
+                    LabelText = SkinSettingsStrings.CurrentHitsoundSamplesSkin,
+                    Current = skins.CurrentHitsoundSamplesSkinInfo,
+                    Keywords = new[] { @"skins" }
+                },
                 new SettingsButton
                 {
                     Text = SkinSettingsStrings.SkinLayoutEditor,
@@ -81,6 +88,18 @@ namespace osu.Game.Overlays.Settings.Sections
                                                                          .OrderBy(s => s.Name, StringComparer.OrdinalIgnoreCase), skinsChanged);
 
             skinDropdown.Current.BindValueChanged(skin =>
+            {
+                if (skin.NewValue == random_skin_info)
+                {
+                    // before selecting random, set the skin back to the previous selection.
+                    // this is done because at this point it will be random_skin_info, and would
+                    // cause SelectRandomSkin to be unable to skip the previous selection.
+                    skins.CurrentSkinInfo.Value = skin.OldValue;
+                    skins.SelectRandomSkin();
+                }
+            });
+
+            skinHitSamplesDropdown.Current.BindValueChanged(skin =>
             {
                 if (skin.NewValue == random_skin_info)
                 {
@@ -115,6 +134,7 @@ namespace osu.Game.Overlays.Settings.Sections
                 dropdownItems.Add(skin.ToLive(realm));
 
             Schedule(() => skinDropdown.Items = dropdownItems);
+            Schedule(() => skinHitSamplesDropdown.Items = dropdownItems);
         }
 
         protected override void Dispose(bool isDisposing)

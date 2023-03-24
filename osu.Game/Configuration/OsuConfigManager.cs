@@ -40,6 +40,7 @@ namespace osu.Game.Configuration
             // UI/selection defaults
             SetDefault(OsuSetting.Ruleset, string.Empty);
             SetDefault(OsuSetting.Skin, SkinInfo.ARGON_SKIN.ToString());
+            SetDefault(OsuSetting.HitsoundSkin, SkinInfo.CLASSIC_SKIN.ToString());
 
             SetDefault(OsuSetting.BeatmapDetailTab, PlayBeatmapDetailArea.TabType.Details);
             SetDefault(OsuSetting.BeatmapDetailModsFilter, false);
@@ -270,6 +271,22 @@ namespace osu.Game.Configuration
                             LookupKeyBindings(GlobalAction.RandomSkin))
                     );
                 }),
+                new TrackedSetting<string>(OsuSetting.HitsoundSkin, skin =>
+                {
+                    string skinName = string.Empty;
+
+                    if (Guid.TryParse(skin, out var id))
+                        skinName = LookupSkinName(id) ?? string.Empty;
+
+                    return new SettingDescription(
+                        rawValue: skinName,
+                        name: SkinSettingsStrings.SkinSectionHeader,
+                        value: skinName,
+                        shortcut: new TranslatableString(@"_", @"{0}: {1}",
+                            GlobalActionKeyBindingStrings.RandomSkin,
+                            LookupKeyBindings(GlobalAction.RandomSkin))
+                    );
+                }),
                 new TrackedSetting<float>(OsuSetting.UIScale, scale => new SettingDescription(
                         rawValue: scale,
                         name: GraphicsSettingsStrings.UIScaling,
@@ -349,6 +366,7 @@ namespace osu.Game.Configuration
         ShowFirstRunSetup,
         ShowConvertedBeatmaps,
         Skin,
+        HitsoundSkin,
         ScreenshotFormat,
         ScreenshotCaptureMenuCursor,
         SongSelectRightMouseScroll,

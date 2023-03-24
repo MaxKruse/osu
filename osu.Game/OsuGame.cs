@@ -187,6 +187,7 @@ namespace osu.Game
         private Bindable<float> uiScale;
 
         private Bindable<string> configSkin;
+        private Bindable<string> configHitsoundSkin;
 
         private readonly string[] args;
 
@@ -301,12 +302,14 @@ namespace osu.Game
             Ruleset.ValueChanged += r => configRuleset.Value = r.NewValue.ShortName;
 
             configSkin = LocalConfig.GetBindable<string>(OsuSetting.Skin);
+            configHitsoundSkin = LocalConfig.GetBindable<string>(OsuSetting.HitsoundSkin);
 
             // Transfer skin from config to realm instance once on startup.
-            SkinManager.SetSkinFromConfiguration(configSkin.Value);
+            SkinManager.SetSkinsFromConfiguration(configSkin.Value, configHitsoundSkin.Value);
 
             // Transfer any runtime changes back to configuration file.
             SkinManager.CurrentSkinInfo.ValueChanged += skin => configSkin.Value = skin.NewValue.ID.ToString();
+            SkinManager.CurrentHitsoundSamplesSkinInfo.ValueChanged += skin => configHitsoundSkin.Value = skin.NewValue.ID.ToString();
 
             LocalUserPlaying.BindValueChanged(p =>
             {
