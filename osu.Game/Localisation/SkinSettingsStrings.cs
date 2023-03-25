@@ -20,9 +20,14 @@ namespace osu.Game.Localisation
         public static LocalisableString CurrentSkin => new TranslatableString(getKey(@"current_skin"), @"Current skin");
 
         /// <summary>
-        /// "Current Hitsound Samples Skin"
+        /// "Use different skin samples"
         /// </summary>
-        public static LocalisableString CurrentHitsoundSamplesSkin => new TranslatableString(getKey(@"current_hitsound_samples_skin"), @"Current Hitsound Samples Skin");
+        public static LocalisableString UseDifferentSkinSamples => new TranslatableString(getKey(@"use_different_skin_samples"), @"Use different skin samples");
+
+        /// <summary>
+        /// "Current hitsound samples skin"
+        /// </summary>
+        public static LocalisableString CurrentHitsoundSamplesSkin => new TranslatableString(getKey(@"current_hitsound_samples_skin"), @"Current hitsound samples skin");
 
         /// <summary>
         /// "Skin layout editor"

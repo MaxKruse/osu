@@ -28,6 +28,7 @@ namespace osu.Game.Overlays.Settings.Sections
     {
         private SkinSettingsDropdown skinDropdown;
         private SkinSettingsDropdown skinHitSamplesDropdown;
+        private SettingsCheckbox useDifferentSkinSamples;
 
         public override LocalisableString Header => SkinSettingsStrings.SkinSectionHeader;
 
@@ -61,6 +62,12 @@ namespace osu.Game.Overlays.Settings.Sections
                 {
                     LabelText = SkinSettingsStrings.CurrentSkin,
                     Current = skins.CurrentSkinInfo,
+                    Keywords = new[] { @"skins" }
+                },
+                useDifferentSkinSamples = new SettingsCheckbox
+                {
+                    LabelText = SkinSettingsStrings.UseDifferentSkinSamples,
+                    Current = skins.UseDifferentSkinSamples,
                     Keywords = new[] { @"skins" }
                 },
                 skinHitSamplesDropdown = new SkinSettingsDropdown

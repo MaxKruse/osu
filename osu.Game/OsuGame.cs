@@ -188,6 +188,7 @@ namespace osu.Game
 
         private Bindable<string> configSkin;
         private Bindable<string> configHitsoundSkin;
+        private Bindable<bool> useDifferentSkinSamples;
 
         private readonly string[] args;
 
@@ -302,6 +303,7 @@ namespace osu.Game
             Ruleset.ValueChanged += r => configRuleset.Value = r.NewValue.ShortName;
 
             configSkin = LocalConfig.GetBindable<string>(OsuSetting.Skin);
+            useDifferentSkinSamples = LocalConfig.GetBindable<bool>(OsuSetting.UseDifferentSkinSamples);
             configHitsoundSkin = LocalConfig.GetBindable<string>(OsuSetting.HitsoundSkin);
 
             // Transfer skin from config to realm instance once on startup.

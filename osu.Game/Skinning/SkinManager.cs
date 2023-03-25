@@ -22,6 +22,7 @@ using osu.Framework.Testing;
 using osu.Framework.Threading;
 using osu.Framework.Utils;
 using osu.Game.Audio;
+using osu.Game.Configuration;
 using osu.Game.Database;
 using osu.Game.IO;
 using osu.Game.Overlays.Notifications;
@@ -55,6 +56,8 @@ namespace osu.Game.Skinning
         public readonly Bindable<Skin> CurrentSkin = new Bindable<Skin>();
 
         public readonly Bindable<Live<SkinInfo>> CurrentSkinInfo = new Bindable<Live<SkinInfo>>(ArgonSkin.CreateInfo().ToLiveUnmanaged());
+
+        public readonly Bindable<bool> UseDifferentSkinSamples = new Bindable<bool>();
 
         public readonly Bindable<Skin> CurrentHitsoundSamplesSkin = new Bindable<Skin>();
 
@@ -130,11 +133,22 @@ namespace osu.Game.Skinning
                 SourceChanged?.Invoke();
             };
 
+            UseDifferentSkinSamples.Value = false;
+            UseDifferentSkinSamples.ValueChanged += val =>
+            {
+                // Invoke the reload with the checkbox button
+                SourceChanged?.Invoke();
+            };
+
             CurrentHitsoundSamplesSkin.Value = DefaultClassicSkin;
             CurrentHitsoundSamplesSkin.ValueChanged += skin =>
             {
                 if (!skin.NewValue.SkinInfo.Equals(CurrentHitsoundSamplesSkinInfo.Value))
                     throw new InvalidOperationException($"Setting {nameof(CurrentHitsoundSamplesSkin)}'s value directly is not supported. Use {nameof(CurrentHitsoundSamplesSkinInfo)} instead.");
+
+                // Dont invoke the reload if we dont need to due to settings
+                if (UseDifferentSkinSamples.Value == false)
+                    return;
 
                 SourceChanged?.Invoke();
             };
@@ -304,7 +318,10 @@ namespace osu.Game.Skinning
         private T lookupHitSamplesWithFallback<T>(Func<ISkin, T> lookupFunction)
             where T : class
         {
-            foreach (var source in AllHitsoundSources)
+
+            var toUse = UseDifferentSkinSamples.Value ? AllHitsoundSources : AllSources;
+
+            foreach (var source in toUse)
             {
                 if (lookupFunction(source) is T skinSourced)
                     return skinSourced;
